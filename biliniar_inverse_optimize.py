@@ -1,17 +1,19 @@
-# このプログラムの目的。
-# 鈴木のMatlabコードを、Pythonで書き換える。
-
+# 鈴木君のMatlabコードに、Bbの項を付け加える
 
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.linalg import solve_continuous_are
 
-# Parameters
+# パラメータ
 r = 0.6
 g = 9.81
+b = 1 # TODO 書き換え
+phi = -0.15
+theta = 0.1 # θ
+gamma = 0.5 # γ TODO 書き換え
 
 # System matrices
-A = np.array([
+As = np.array([
     [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, g, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -39,13 +41,28 @@ Bl = np.array([
     [0, 0, 0],
     [0, 0, 1]
 ])
+Bb = np.array([
+    [0, 0, 0], # ↓ Bls1
+    [0, 0, b],
+    [0, 0, 0],
+    [0, 0, (theta-b)/r],
+    [0, 0, 0],
+    [0, 0, 0],  # ↓ Bls2
+    [0, 0, -gamma],
+    [0, 0, 0],
+    [0, 0, (phi-gamma)/r],
+    [0, 0, 0],
+    [0, 0, 0],   # ↓ Bls3
+    [0, 0, 0]
+])
+
 
 # 重みの設定
 Q = np.diag([1]*12)
 R = np.diag([1, 1, 1])
 
-# LQR法の代わりに、riccati方程式を解いてる?
-P = solve_continuous_are(A, Bl, Q, R)
+# LQR法?
+P = solve_continuous_are(As, Bl, Q, R)
 K = np.linalg.inv(R) @ Bl.T @ P
 
 # シミュレーションの設定
@@ -99,9 +116,7 @@ for k in range(N - 1):
          u[2, k]) * np.cos(q[4, k]) * np.cos(q[9, k]) - g
     ])
 
-    q[:, k + 1] = q[:, k] + dq[:, k] * Ts
-
-print(q)
+    q[:, k + 1] = q[:, k] + dq[:, k] * Ts 
 
 # グラフを描画
 plt.figure()
